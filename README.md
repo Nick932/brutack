@@ -1,2 +1,2 @@
 # brutack
-Script for bruteforce attack on wi-fi with execution from shell. 
+Script for bruteforce attack on wi-fi. 
