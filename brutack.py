@@ -128,7 +128,7 @@ def Brute(name, password):
 
 if __name__ == '__main__':
 
-    name = sys.argv[1] # Some error was occured...
+    name = sys.argv[1]
     
     # This block collecting info from system arguments.
     try:
