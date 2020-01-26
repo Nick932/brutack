@@ -128,7 +128,7 @@ def Brute(name, password):
 
 if __name__ == '__main__':
 
-    name = sys.argv[1]
+    name = sys.argv[1] # Some error was occured...
     
     # This block collecting info from system arguments.
     try:
@@ -159,6 +159,9 @@ The file with passwords must be in the same directory as "brutack", or contains
                     print('Brute-force attack well done. Exiting.')
                     success = 1
                     break     
+    except BrokenPipeError: # Some strange error... I don't know,
+    # what is it, so lets just pass it >.<
+        pass
     except Exception:
         with writeToLog:
             print('Unexpected error!', sys.exc_info())
@@ -171,3 +174,11 @@ The file with passwords must be in the same directory as "brutack", or contains
             with writeToLog:
                 print('connection', name, each, ' delete ')
     ##
+            
+        
+
+
+
+
+
+#%%
