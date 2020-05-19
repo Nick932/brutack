@@ -1,5 +1,5 @@
 # Brutack
-Script for bruteforce attack on wi-fi. 
+Script for wi-fi bruteforce attack. 
 
 # Requirements
 - Python 3.0+
