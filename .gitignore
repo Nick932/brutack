@@ -1,0 +1,8 @@
+__pycache__/
+.git/
+tests/
+.vscode/
+__init__.py
+brute_passwords1.txt
+brute_passwords2.txt
+test.txt
