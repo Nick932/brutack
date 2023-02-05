@@ -49,8 +49,8 @@ logger.setLevel(LOG_LEVEL)
 
 log_file = logging.FileHandler(LOG_FILE_NAME, mode = 'w')
 
-logging_format = '[%(levelname)s] ({0} "%(name)s") module "%(module)s"\n[func "%(funcName)s"]\n\n%(message)s\n'.format(datetime.now().strftime('%H:%M:%S'))
-formatter = logging.Formatter(logging_format)
+logging_format = '[%(levelname)s] ("%(asctime)s" "%(name)s") module "%(module)s"\n[func "%(funcName)s"]\n\n%(message)s\n'#.format(datetime.now().strftime('%H:%M:%S'))
+formatter = logging.Formatter(logging_format, datefmt='%H:%M:%S')
 log_file.setFormatter(formatter)
 
 logger.addHandler(log_file)
