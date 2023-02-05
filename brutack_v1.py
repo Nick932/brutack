@@ -1,5 +1,10 @@
 """
+Note that sometimes brutack decides that he found out correct
+password, but the truth that it isn't: the problem is that
+CHECK_CONNECTION_PAUSE is too low. Just try to increase it.
+(See also check_connection() docs).
 
+P.S. You should know that it is definitely not the fastest way to brute force.
 """
 
 import time
@@ -9,24 +14,27 @@ import threading
 from functools import reduce
 from logger import logger
 
+# Set up these global variables as you wish before using.
 START_FROM: int = 1  # Number of string of your file to start with
-
 WIFI_NAME = 'SOME_WIFI_NAME'  # Name of the Wi-Fi point to attack
-CHECK_CONNECTION_PAUSE = 20  # Pause before connection check (in secs).
-# You will get incorrect result of connection checking If it's too low,
-# because while connection is establishing it looks like THERE IS successful
-# connection.
-
-ATTEMPT_NO = 0
-FILE_WITH_PASSWORDS = 'some_file.txt'  # Passwords list.
+CHECK_CONNECTION_PAUSE = 15  # Pause before connection check (in secs).
+FILE_WITH_PASSWORDS = 'geo_passwords.txt'  # Passwords list.
 # Each new password should be on a new line.
 # Don't worry, `\n`'s will have been handled correctly.
 MIN_PASS_LEN = 8  # All passwords shorter than that will be ignored.
 
 
+ATTEMPT_NO = 0  # For logs and prints (It isn't necessary to do something with this one)
+
+
 def check_connection() -> bool:
     """Checks if there is wi-fi connection or not.
     Returns True if it is, False - if it's not.
+
+    You will get incorrect result of connection checking
+    if CHECK_CONNECTION_PAUSE too low,
+    because while connection is establishing it looks like
+    THERE IS successful connection.
     """
 
     time.sleep(CHECK_CONNECTION_PAUSE)
@@ -58,7 +66,7 @@ def remove_connection():
         while you use this function (I mean you had unsharped WARNING 12 (see bellow)).
     """
     try:
-        command = f"nmcli connection delete '{WIFI_NAME}' {ATTEMPT_NO}'"
+        command = f"nmcli connection delete '{WIFI_NAME} {ATTEMPT_NO}'"
         os.popen(command)
         logger.debug(f'Remove connection command is {command}')
     except Exception:
